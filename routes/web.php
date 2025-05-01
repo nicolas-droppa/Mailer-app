@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContactController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TemplateController;
+use App\Http\Controllers\EmailController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -21,6 +22,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('contacts', ContactController::class);
 
     Route::resource('templates', TemplateController::class);
+
+    Route::get('emails/create',   [EmailController::class,'create'])->name('emails.create');
+    Route::post('emails/send',    [EmailController::class,'send'])->name('emails.send');
+    Route::get('emails/history',  [EmailController::class,'history'])->name('emails.history');
 });
 
 require __DIR__.'/auth.php';
