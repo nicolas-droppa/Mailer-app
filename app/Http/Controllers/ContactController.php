@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Contact;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class ContactController extends Controller
 {
@@ -23,7 +24,13 @@ class ContactController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string',
-            'email' => 'required|email|unique:contacts,email',
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('contacts')->where(function ($query) {
+                    return $query->where('user_id', Auth::id());
+                }),
+            ],
             'salutation' => 'required|in:tykanie,vykanie',
             'gender' => 'required|in:muž,žena',
         ]);

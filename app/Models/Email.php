@@ -12,10 +12,13 @@ class Email extends Model
         'subject',
         'body',
         'recipients',
+        'status',
+        'scheduled_at',
     ];
 
     protected $casts = [
-        'recipients' => 'array',
+        'recipients'   => 'array',
+        'scheduled_at' => 'datetime',
     ];
     
     public function user()

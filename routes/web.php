@@ -26,6 +26,8 @@ Route::middleware('auth')->group(function () {
     Route::get('emails/create',   [EmailController::class,'create'])->name('emails.create');
     Route::post('emails/send',    [EmailController::class,'send'])->name('emails.send');
     Route::get('emails/history',  [EmailController::class,'history'])->name('emails.history');
+    Route::post('emails/bulk-send', [EmailController::class, 'bulkSend'])->name('emails.bulkSend');
+    Route::post('emails/{email}/send-one', [EmailController::class, 'sendOne'])->name('emails.sendOne');
 });
 
 require __DIR__.'/auth.php';

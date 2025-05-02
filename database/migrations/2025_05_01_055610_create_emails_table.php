@@ -17,6 +17,7 @@ return new class extends Migration
             $t->string('subject');
             $t->longText('body');
             $t->json('recipients');
+            $t->enum('status', ['odoslane', 'caka'])->default('caka');
             $t->timestamps();
           });
     }
