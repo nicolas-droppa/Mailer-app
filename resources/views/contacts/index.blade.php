@@ -2,10 +2,14 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
-    <h2 class="text-2xl font-semibold mb-4">Kontakty</h2>
+    <h2 class="text-2xl font-semibold mb-4 flex items-center gap-2 text-gray-800">
+        <i class="fas fa-user text-blue-500"></i>
+        Kontakty
+    </h2>
 
     <div class="mb-4">
-        <a href="{{ route('contacts.create') }}" class="inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+        <a href="{{ route('contacts.create') }}" class="inline-flex items-center gap-2 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition">
+            <i class="fas fa-user-plus"></i>
             Pridať nový kontakt
         </a>
     </div>
@@ -13,7 +17,7 @@
     <div class="bg-white p-6 rounded shadow-md">
         <table class="min-w-full table-auto">
             <thead>
-                <tr class="border-b">
+                <tr class="border-b text-gray-700">
                     <th class="py-2 px-4 text-left">Meno</th>
                     <th class="py-2 px-4 text-left">E-mail</th>
                     <th class="py-2 px-4 text-left">Oslovenie</th>
@@ -23,17 +27,21 @@
             </thead>
             <tbody>
                 @foreach($contacts as $contact)
-                    <tr class="border-b hover:bg-gray-100">
+                    <tr class="border-b hover:bg-gray-100 text-gray-800">
                         <td class="py-2 px-4">{{ $contact->name }}</td>
                         <td class="py-2 px-4">{{ $contact->email }}</td>
                         <td class="py-2 px-4">{{ ucfirst($contact->salutation) }}</td>
                         <td class="py-2 px-4">{{ ucfirst($contact->gender) }}</td>
-                        <td class="py-2 px-4">
-                            <a href="{{ route('contacts.edit', $contact->id) }}" class="text-blue-500 hover:text-blue-700">Upravit</a>
-                            <form action="{{ route('contacts.destroy', $contact->id) }}" method="POST" class="inline ml-2">
+                        <td class="py-2 px-4 flex items-center gap-3"> 
+                            <a href="{{ route('contacts.edit', $contact->id) }}" class="text-blue-500 hover:text-blue-700 transform hover:scale-110 transition duration-200">
+                                <i class="fas fa-pen"></i>
+                            </a>
+                            <form action="{{ route('contacts.destroy', $contact->id) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-red-500 hover:text-red-700">Zmazať</button>
+                                <button type="submit" class="text-red-500 hover:text-red-700 transform hover:scale-110 transition duration-200">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </form>
                         </td>
                     </tr>
