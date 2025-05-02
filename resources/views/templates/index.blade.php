@@ -1,22 +1,49 @@
 @extends('layouts.app')
+
 @section('content')
-<div class="container mx-auto py-6">
-  <h2 class="text-2xl font-bold mb-4 text-cyan-600">Šablóny</h2>
-  <a href="{{ route('templates.create') }}" class="bg-cyan-500 text-white px-4 py-2 rounded hover:bg-cyan-600">Nová šablóna</a>
-  <div class="mt-4 bg-white p-4 rounded shadow">
-    <table class="min-w-full">
-      <thead><tr><th>Name</th><th>Subject</th><th>Akcie</th></tr></thead>
-      <tbody>@foreach($templates as $t)<tr class="border-b hover:bg-gray-50">
-        <td class="px-3 py-2">{{ $t->name }}</td>
-        <td class="px-3 py-2">{{ $t->subject }}</td>
-        <td class="px-3 py-2">
-          <a href="{{ route('templates.edit',$t) }}" class="text-blue-600">Upraviť</a>
-          <form action="{{ route('templates.destroy',$t) }}" method="POST" class="inline">@csrf @method('DELETE')
-            <button type="submit" class="text-red-600 ml-2">Zmazať</button>
-          </form>
-        </td>
-      </tr>@endforeach</tbody>
-    </table>
-  </div>
+<div class="container mx-auto px-4 py-6">
+    <h2 class="text-2xl font-semibold mb-4 flex items-center gap-2 text-gray-800">
+        <i class="fas fa-file-alt text-blue-500"></i>
+        Šablóny
+    </h2>
+
+    <div class="mb-4">
+        <a href="{{ route('templates.create') }}" class="inline-flex items-center gap-2 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition">
+            <i class="fas fa-plus"></i>
+            Nová šablóna
+        </a>
+    </div>
+
+    <div class="bg-white p-6 rounded shadow-md">
+        <table class="min-w-full table-auto">
+            <thead>
+                <tr class="border-b text-gray-700">
+                    <th class="py-2 px-4 text-left">Názov</th>
+                    <th class="py-2 px-4 text-left">Predmet</th>
+                    <th class="py-2 px-4 text-left">Akcie</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($templates as $t)
+                    <tr class="border-b hover:bg-gray-100 text-gray-800">
+                        <td class="py-2 px-4">{{ $t->name }}</td>
+                        <td class="py-2 px-4">{{ $t->subject }}</td>
+                        <td class="py-2 px-4 flex items-center gap-3">
+                            <a href="{{ route('templates.edit', $t) }}" class="text-blue-500 hover:text-blue-700 transform hover:scale-110 transition duration-200">
+                                <i class="fas fa-pen"></i>
+                            </a>
+                            <form action="{{ route('templates.destroy', $t) }}" method="POST" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-500 hover:text-red-700 transform hover:scale-110 transition duration-200">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 </div>
 @endsection
