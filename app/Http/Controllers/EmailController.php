@@ -77,4 +77,29 @@ class EmailController extends Controller
 
         return back()->with('success', 'E-mail bol úspešne odoslaný.');
     }
+
+    public function edit(Email $email)
+    {
+        if ($email->status !== 'caka') {
+            return redirect()->route('emails.history')->with('error', 'E-mail už bol odoslaný a nie je možné ho upraviť.');
+        }
+
+        return view('emails.edit', compact('email'));
+    }
+
+    public function update(Request $request, Email $email)
+    {
+        if ($email->status !== 'caka') {
+            return redirect()->route('emails.history')->with('error', 'E-mail už bol odoslaný a nie je možné ho upraviť.');
+        }
+
+        $validated = $request->validate([
+            'subject' => 'required|string|max:255',
+            'body' => 'required|string',
+        ]);
+
+        $email->update($validated);
+
+        return redirect()->route('emails.history')->with('success', 'E-mail bol úspešne aktualizovaný.');
+    }
 }

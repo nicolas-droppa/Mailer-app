@@ -28,6 +28,8 @@ Route::middleware('auth')->group(function () {
     Route::get('emails/history',  [EmailController::class,'history'])->name('emails.history');
     Route::post('emails/bulk-send', [EmailController::class, 'bulkSend'])->name('emails.bulkSend');
     Route::post('emails/{email}/send-one', [EmailController::class, 'sendOne'])->name('emails.sendOne');
+    Route::get('/emails/{email}/edit', [EmailController::class, 'edit'])->name('emails.edit');
+    Route::put('/emails/{email}', [EmailController::class, 'update'])->name('emails.update');
 });
 
 require __DIR__.'/auth.php';
