@@ -25,17 +25,34 @@
             </thead>
             <tbody>
                 @foreach($templates as $t)
-                    <tr class="border-b hover:bg-gray-100 text-gray-800">
+                    <tr class="border-b hover:bg-gray-100 text-gray-800 cursor-pointer" onclick="window.location='{{ route('templates.show', $t) }}'">
                         <td class="py-2 px-4">{{ $t->name }}</td>
                         <td class="py-2 px-4">{{ $t->subject }}</td>
-                        <td class="py-2 px-4 flex items-center gap-3">
-                            <a href="{{ route('templates.edit', $t) }}" class="text-blue-500 hover:text-blue-700 transform hover:scale-110 transition duration-200">
+                        <td class="py-2 px-4 flex items-center gap-3" onclick="event.stopPropagation();">
+                            <!-- Edit -->
+                            <a href="{{ route('templates.edit', $t) }}"
+                               class="text-blue-500 hover:text-blue-700 transform hover:scale-110 transition duration-200"
+                               title="Upraviť">
                                 <i class="fas fa-pen"></i>
                             </a>
+
+                            <!-- Copy -->
+                            <form action="{{ route('templates.copy', $t) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit"
+                                        class="text-gray-500 hover:text-gray-700 transform hover:scale-110 transition duration-200"
+                                        title="Kopírovať">
+                                    <i class="fas fa-clone"></i>
+                                </button>
+                            </form>
+
+                            <!-- Delete -->
                             <form action="{{ route('templates.destroy', $t) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-red-500 hover:text-red-700 transform hover:scale-110 transition duration-200">
+                                <button type="submit"
+                                        class="text-red-500 hover:text-red-700 transform hover:scale-110 transition duration-200"
+                                        title="Zmazať">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>

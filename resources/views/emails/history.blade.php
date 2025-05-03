@@ -80,7 +80,7 @@
                                         @click.prevent.stop="openConfirm('delete', {{ $m->id }})" 
                                         class="text-red-500 hover:text-red-700" 
                                         title="Zmazať">
-                                        <i class="fas fa-trash-alt"></i>
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 @endif
 

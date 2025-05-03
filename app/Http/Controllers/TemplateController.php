@@ -65,4 +65,19 @@ class TemplateController extends Controller
         $template->delete();
         return redirect()->route('templates.index')->with('success', 'Šablóna zmazaná');
     }
+
+    public function copy($id)
+    {
+        $template = Template::findOrFail($id);
+        $newTemplate = $template->replicate();
+        $newTemplate->name .= ' - Kópia';
+        $newTemplate->save();
+
+        return redirect()->route('templates.index')->with('success', 'Šablóna bola skopírovaná!');
+    }
+
+    public function show(Template $template)
+    {
+        return view('templates.show', compact('template'));
+    }
 }
