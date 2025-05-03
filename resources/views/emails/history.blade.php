@@ -61,19 +61,38 @@
                                 @endif
                             </td>
                             <td class="py-2 px-4 flex items-center gap-3">
+                                {{-- Odoslať (iba ak čaká) --}}
                                 @if($m->status === 'caka')
-                                    <a href="{{ route('emails.edit', $m) }}" class="text-blue-500 hover:text-blue-700 transform hover:scale-110 transition duration-200" title="Upraviť">
-                                        <i class="fas fa-pen"></i>
-                                    </a>
                                     <form action="{{ route('emails.sendOne', $m) }}" method="POST" onsubmit="return confirm('Naozaj chcete odoslať tento e-mail?')" class="inline">
                                         @csrf
                                         <button type="submit" class="text-indigo-600 hover:text-indigo-800 transform hover:scale-110 transition duration-200" title="Odoslať">
                                             <i class="fas fa-paper-plane"></i>
                                         </button>
                                     </form>
-                                @else
-                                    <span class="text-gray-400 text-sm">–</span>
+
+                                    {{-- Edit --}}
+                                    <a href="{{ route('emails.edit', $m) }}"
+                                       class="text-blue-500 hover:text-blue-700 transform hover:scale-110 transition duration-200" title="Upraviť">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+
+                                    {{-- Zmazať --}}
+                                    <form action="{{ route('emails.destroy', $m) }}" method="POST" onsubmit="return confirm('Naozaj chcete vymazať tento e-mail?')" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-500 hover:text-red-700 transform hover:scale-110 transition duration-200" title="Zmazať">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
                                 @endif
+
+                                {{-- Kopírovať (vždy) --}}
+                                <form action="{{ route('emails.copy', $m) }}" method="POST" onsubmit="return confirm('Skopírovať tento e-mail?')" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-gray-600 hover:text-gray-800 transform hover:scale-110 transition duration-200" title="Kopírovať">
+                                        <i class="fas fa-clone"></i>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     @endforeach

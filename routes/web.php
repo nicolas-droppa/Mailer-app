@@ -30,6 +30,8 @@ Route::middleware('auth')->group(function () {
     Route::post('emails/{email}/send-one', [EmailController::class, 'sendOne'])->name('emails.sendOne');
     Route::get('/emails/{email}/edit', [EmailController::class, 'edit'])->name('emails.edit');
     Route::put('/emails/{email}', [EmailController::class, 'update'])->name('emails.update');
+    Route::post('/emails/{email}/copy', [EmailController::class, 'copy'])->name('emails.copy');
+    Route::delete('/emails/{email}', [EmailController::class, 'destroy'])->name('emails.destroy');
 });
 
 require __DIR__.'/auth.php';

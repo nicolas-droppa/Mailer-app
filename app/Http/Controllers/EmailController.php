@@ -102,4 +102,24 @@ class EmailController extends Controller
 
         return redirect()->route('emails.history')->with('success', 'E-mail bol úspešne aktualizovaný.');
     }
+
+    public function copy(Email $email)
+    {
+        $newEmail = $email->replicate();
+        $newEmail->status = 'caka';
+        $newEmail->save();
+
+        return redirect()->route('emails.history')->with('success', 'E-mail bol skopírovaný.');
+    }
+
+    public function destroy(Email $email)
+    {
+        if ($email->status !== 'caka') {
+            return redirect()->route('emails.history')->with('error', 'Iba čakajúce e-maily je možné vymazať.');
+        }
+
+        $email->delete();
+
+        return redirect()->route('emails.history')->with('success', 'E-mail bol úspešne vymazaný.');
+    }
 }
