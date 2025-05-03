@@ -154,4 +154,12 @@ class EmailController extends Controller
 
         return redirect()->route('emails.history')->with('success', 'E-mail bol úspešne vymazaný.');
     }
+
+    public function show(Email $email)
+    {
+        if ($email->user_id !== Auth::id()) {
+            abort(403);
+        }
+        return view('emails.show', compact('email'));
+    }
 }

@@ -21,7 +21,7 @@
         </div>
     @endif
 
-    <form action="{{ route('emails.bulkSend') }}" method="POST">
+    <form id="bulkForm" action="{{ route('emails.bulkSend') }}" method="POST">
         @csrf
 
         <div class="bg-white p-6 rounded shadow-md">
@@ -38,21 +38,23 @@
                 </thead>
                 <tbody>
                     @foreach($history as $m)
-                        <tr class="border-b hover:bg-gray-100 text-gray-800">
-                            <td class="py-2 px-4">
+                        <tr class="border-b hover:bg-gray-100 text-gray-800 cursor-pointer" @click="window.location='{{ route('emails.show', $m) }}'">
+                            <td class="py-2 px-4" @click.stop>
                                 @if($m->status === 'caka')
-                                    <input type="checkbox" name="email_ids[]" value="{{ $m->id }}" class="email-checkbox accent-blue-600">
+                                    <input form="bulkForm" type="checkbox" name="email_ids[]" value="{{ $m->id }}" class="email-checkbox accent-blue-600">
                                 @endif
                             </td>
-                            <td class="py-2 px-4 font-medium">{{ $m->subject }}</td>
+                            <td class="py-2 px-4 font-medium text-gray-800">{{ $m->subject }}</td>
                             <td class="py-2 px-4 text-sm">
-                                <ul class="list-disc ml-4 space-y-1">
-                                    @foreach($m->recipients as $email)
-                                        <li>{{ $email }}</li>
-                                    @endforeach
-                                </ul>
+                                @if(count($m->recipients) === 1)
+                                    <!-- Display single recipient email -->
+                                    <span class="text-gray-700">{{ $m->recipients[0] }}</span>
+                                @else
+                                    <!-- Display count of recipients -->
+                                    <span class="text-gray-500">{{ count($m->recipients) }} príjemcov</span>
+                                @endif
                             </td>
-                            <td class="py-2 px-4 text-gray-500">{{ $m->created_at->format('d.m.Y H:i') }}</td>
+                            <td class="py-2 px-4 text-gray-500">{{ $m->created_at->timezone('Europe/Bratislava')->format('d.m.Y H:i') }}</td>
                             <td class="py-2 px-4">
                                 @if($m->status === 'caka')
                                     <span class="inline-block bg-yellow-400 text-white text-xs font-semibold px-3 py-1 rounded-full">Čaká</span>
@@ -60,22 +62,22 @@
                                     <span class="inline-block bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full">Odoslané</span>
                                 @endif
                             </td>
-                            <td class="py-2 px-4 flex items-center gap-3">
+                            <td class="py-2 px-4 flex items-center gap-3" @click.stop>
                                 @if($m->status === 'caka')
                                     <!-- Send Now -->
-                                    <form action="{{ route('emails.sendOne', $m) }}" method="POST" class="inline">
+                                    <form action="{{ route('emails.sendOne', $m) }}" method="POST" class="inline" @click.stop>
                                         @csrf
                                         <button type="submit" class="text-indigo-600 hover:text-indigo-800" title="Odoslať">
                                             <i class="fas fa-paper-plane"></i>
                                         </button>
                                     </form>
                                     <!-- Edit -->
-                                    <a href="{{ route('emails.edit', $m) }}" class="text-blue-500 hover:text-blue-700" title="Upraviť">
+                                    <a href="{{ route('emails.edit', $m) }}" class="text-blue-500 hover:text-blue-700" title="Upraviť" @click.stop>
                                         <i class="fas fa-pen"></i>
                                     </a>
                                     <!-- Delete trigger -->
                                     <button 
-                                        @click.prevent="openConfirm('delete', {{ $m->id }})" 
+                                        @click.prevent.stop="openConfirm('delete', {{ $m->id }})" 
                                         class="text-red-500 hover:text-red-700" 
                                         title="Zmazať">
                                         <i class="fas fa-trash-alt"></i>
@@ -84,8 +86,8 @@
 
                                 <!-- Copy trigger -->
                                 <button 
-                                    @click.prevent="openConfirm('copy', {{ $m->id }})" 
-                                    class="text-gray-600 hover:text-gray-800" 
+                                    @click.prevent.stop="openConfirm('copy', {{ $m->id }})" 
+                                    class="text-gray-500 hover:text-gray-700" 
                                     title="Kopírovať">
                                     <i class="fas fa-clone"></i>
                                 </button>
@@ -97,7 +99,7 @@
         </div>
 
         <div class="mt-4 flex justify-end">
-            <button type="submit"
+            <button form="bulkForm" type="submit"
                     class="inline-flex items-center gap-2 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition">
                 <i class="fas fa-paper-plane"></i>
                 Odoslať vybrané
@@ -112,7 +114,7 @@
             <p class="mb-6" x-text="confirmAction == 'delete' ? 'Naozaj chcete vymazať tento e-mail?' : 'Naozaj chcete kopírovať tento e-mail?'"></p>
             <div class="flex justify-end gap-3">
                 <button @click="closeConfirm()" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Zrušiť</button>
-                <form :action="actionUrl" method="POST">
+                <form :action="actionUrl" method="POST" @click.stop>
                     @csrf
                     <template x-if="confirmAction == 'delete'">
                         <input type="hidden" name="_method" value="DELETE">

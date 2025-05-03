@@ -32,6 +32,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/emails/{email}', [EmailController::class, 'update'])->name('emails.update');
     Route::post('/emails/{email}/copy', [EmailController::class, 'copy'])->name('emails.copy');
     Route::delete('/emails/{email}', [EmailController::class, 'destroy'])->name('emails.destroy');
+    Route::middleware('auth')->group(function () {
+        Route::get('emails/{email}', [EmailController::class, 'show'])->name('emails.show');
+    });
 });
 
 require __DIR__.'/auth.php';
