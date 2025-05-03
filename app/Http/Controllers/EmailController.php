@@ -22,23 +22,55 @@ class EmailController extends Controller
     public function send(Request $r)
     {
         $r->validate([
-            'template_id' => 'required|exists:templates,id',
-            'contact_ids' => 'required|array',
+            'template_id' => 'nullable|exists:templates,id',
+            'contact_ids' => 'required|array|min:1',
+            'send_option' => 'required|in:now,later',
+            'subject'     => 'required|string|max:255',
+            'body'        => 'required|string',
         ]);
 
-        $tpl = Template::find($r->template_id);
         $contacts = Contact::whereIn('id', $r->contact_ids)->get();
+        $recipients = $contacts->pluck('email')->toArray();
 
+        // V prípade šablóny prepíš subject/body (iba ak šablóna bola naozaj vybraná)
+        if ($r->template_id) {
+            $tpl = Template::find($r->template_id);
+            $subject = $tpl->subject;
+            $body    = $tpl->body;
+        } else {
+            $subject = $r->subject;
+            $body    = $r->body;
+        }
+
+        // Odoslať hneď
+        if ($r->send_option === 'now') {
+            foreach ($recipients as $recipient) {
+                Mail::to($recipient)->send(new BulkMail($subject, $body));
+            }
+
+            Email::create([
+                'user_id'    => Auth::id(),
+                'subject'    => $subject,
+                'body'       => $body,
+                'recipients' => $recipients,
+                'status'     => 'odoslane',
+            ]);
+
+            return redirect()->route('emails.history')->with('success', 'E‑maily boli okamžite odoslané.');
+        }
+
+        // Odoslať neskôr
         Email::create([
             'user_id'    => Auth::id(),
-            'subject'    => $tpl->subject,
-            'body'       => $tpl->body,
-            'recipients' => $contacts->pluck('email')->toArray(),
+            'subject'    => $subject,
+            'body'       => $body,
+            'recipients' => $recipients,
             'status'     => 'caka',
         ]);
 
-        return redirect()->route('emails.history')->with('success', 'E-maily boli pripravené na odoslanie.');
+        return redirect()->route('emails.history')->with('success', 'E‑maily boli pripravené na odoslanie.');
     }
+
 
     public function history()
     {

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
+<div class="container mx-auto px-4 py-6" x-data="emailHistory()">
     <h2 class="text-2xl font-semibold mb-4 flex items-center gap-2 text-gray-800">
         <i class="fas fa-envelope text-blue-500"></i>
         História e-mailov
@@ -28,7 +28,7 @@
             <table class="min-w-full table-auto">
                 <thead>
                     <tr class="border-b text-gray-700 text-sm uppercase">
-                        <th class="py-2 px-4"><input type="checkbox" id="checkAll" class="accent-blue-600"></th>
+                        <th class="py-2 px-4"><input type="checkbox" id="checkAll" class="accent-blue-600" @change="toggleAll"></th>
                         <th class="py-2 px-4 text-left">Predmet</th>
                         <th class="py-2 px-4 text-left">Príjemcovia</th>
                         <th class="py-2 px-4 text-left">Dátum</th>
@@ -61,38 +61,34 @@
                                 @endif
                             </td>
                             <td class="py-2 px-4 flex items-center gap-3">
-                                {{-- Odoslať (iba ak čaká) --}}
                                 @if($m->status === 'caka')
-                                    <form action="{{ route('emails.sendOne', $m) }}" method="POST" onsubmit="return confirm('Naozaj chcete odoslať tento e-mail?')" class="inline">
+                                    <!-- Send Now -->
+                                    <form action="{{ route('emails.sendOne', $m) }}" method="POST" class="inline">
                                         @csrf
-                                        <button type="submit" class="text-indigo-600 hover:text-indigo-800 transform hover:scale-110 transition duration-200" title="Odoslať">
+                                        <button type="submit" class="text-indigo-600 hover:text-indigo-800" title="Odoslať">
                                             <i class="fas fa-paper-plane"></i>
                                         </button>
                                     </form>
-
-                                    {{-- Edit --}}
-                                    <a href="{{ route('emails.edit', $m) }}"
-                                       class="text-blue-500 hover:text-blue-700 transform hover:scale-110 transition duration-200" title="Upraviť">
+                                    <!-- Edit -->
+                                    <a href="{{ route('emails.edit', $m) }}" class="text-blue-500 hover:text-blue-700" title="Upraviť">
                                         <i class="fas fa-pen"></i>
                                     </a>
-
-                                    {{-- Zmazať --}}
-                                    <form action="{{ route('emails.destroy', $m) }}" method="POST" onsubmit="return confirm('Naozaj chcete vymazať tento e-mail?')" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-500 hover:text-red-700 transform hover:scale-110 transition duration-200" title="Zmazať">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </form>
+                                    <!-- Delete trigger -->
+                                    <button 
+                                        @click.prevent="openConfirm('delete', {{ $m->id }})" 
+                                        class="text-red-500 hover:text-red-700" 
+                                        title="Zmazať">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
                                 @endif
 
-                                {{-- Kopírovať (vždy) --}}
-                                <form action="{{ route('emails.copy', $m) }}" method="POST" onsubmit="return confirm('Skopírovať tento e-mail?')" class="inline">
-                                    @csrf
-                                    <button type="submit" class="text-gray-600 hover:text-gray-800 transform hover:scale-110 transition duration-200" title="Kopírovať">
-                                        <i class="fas fa-clone"></i>
-                                    </button>
-                                </form>
+                                <!-- Copy trigger -->
+                                <button 
+                                    @click.prevent="openConfirm('copy', {{ $m->id }})" 
+                                    class="text-gray-600 hover:text-gray-800" 
+                                    title="Kopírovať">
+                                    <i class="fas fa-clone"></i>
+                                </button>
                             </td>
                         </tr>
                     @endforeach
@@ -108,15 +104,61 @@
             </button>
         </div>
     </form>
+
+    <!-- Confirmation Modal -->
+    <div x-show="confirmOpen" x-cloak class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <h3 class="text-lg font-semibold mb-4">Potvrdenie akcie</h3>
+            <p class="mb-6" x-text="confirmAction == 'delete' ? 'Naozaj chcete vymazať tento e-mail?' : 'Naozaj chcete kopírovať tento e-mail?'"></p>
+            <div class="flex justify-end gap-3">
+                <button @click="closeConfirm()" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Zrušiť</button>
+                <form :action="actionUrl" method="POST">
+                    @csrf
+                    <template x-if="confirmAction == 'delete'">
+                        <input type="hidden" name="_method" value="DELETE">
+                    </template>
+                    <button
+                    type="submit"
+                    :class="confirmAction === 'delete'
+                        ? 'px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600'
+                        : 'px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'"
+                    x-text="confirmAction === 'delete' ? 'Vymazať' : 'Kopírovať'">
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
-    document.getElementById('checkAll')?.addEventListener('change', function () {
-        document.querySelectorAll('.email-checkbox').forEach(cb => {
-            cb.checked = this.checked;
-        });
-    });
+    function emailHistory() {
+        return {
+            confirmOpen: false,
+            confirmAction: null,
+            confirmId: null,
+            actionUrl: '',
+            openConfirm(action, id) {
+                this.confirmAction = action;
+                this.confirmId = id;
+                if (action === 'delete') {
+                    this.actionUrl = `/emails/${id}`;
+                } else if (action === 'copy') {
+                    this.actionUrl = `/emails/${id}/copy`;
+                }
+                this.confirmOpen = true;
+            },
+            closeConfirm() {
+                this.confirmOpen = false;
+                this.confirmAction = null;
+                this.confirmId = null;
+                this.actionUrl = '';
+            },
+            toggleAll(e) {
+                document.querySelectorAll('.email-checkbox').forEach(cb => cb.checked = e.target.checked);
+            }
+        }
+    }
 </script>
 @endpush
