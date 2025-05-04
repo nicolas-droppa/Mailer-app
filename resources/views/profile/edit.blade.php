@@ -1,29 +1,33 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-profile-information-form')
-                </div>
+@section('content')
+<div class="container mx-auto px-4 py-6">
+    <h2 class="text-2xl font-semibold mb-6 text-gray-800 flex items-center gap-2">
+        <i class="fas fa-user text-blue-500"></i>
+        Profil používateľa
+    </h2>
+
+    <div class="space-y-6">
+        {{-- Osobné údaje --}}
+        <div class="bg-white shadow rounded-lg p-6">
+            <div class="max-w-xl">
+                @include('profile.partials.update-profile-information-form')
             </div>
+        </div>
 
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
-                </div>
+        {{-- Zmena hesla --}}
+        <div class="bg-white shadow rounded-lg p-6">
+            <div class="max-w-xl">
+                @include('profile.partials.update-password-form')
             </div>
+        </div>
 
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
-                </div>
+        {{-- Zmazanie účtu --}}
+        <div class="bg-white shadow rounded-lg p-6">
+            <div class="max-w-xl">
+                @include('profile.partials.delete-user-form')
             </div>
         </div>
     </div>
-</x-app-layout>
+</div>
+@endsection
