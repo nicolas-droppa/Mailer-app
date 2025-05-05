@@ -68,20 +68,6 @@
 
         {{-- Príloha --}}
         <div>
-            <label for="attachment" class="block text-sm font-medium text-gray-700">Príloha (obrázok, PDF)</label>
-            <input
-                id="attachment"
-                name="attachment"
-                type="file"
-                class="mt-1 w-full text-sm text-gray-600
-                    file:mr-4 file:py-2 file:px-4
-                    file:rounded file:border-0
-                    file:text-sm file:font-semibold
-                    file:bg-blue-100 file:text-blue-700
-                    hover:file:bg-blue-200"
-            >
-            @error('attachment')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
-
             @if ($template->attachment_path)
                 <div class="mt-4">
                     <p class="text-sm text-gray-700 mb-2">Aktuálna príloha:</p>
