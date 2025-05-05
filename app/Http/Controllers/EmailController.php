@@ -31,54 +31,104 @@ class EmailController extends Controller
             'attachment'  => 'nullable|file|max:10240', // max 10MB
         ]);
 
-        $contacts    = Contact::whereIn('id', $r->contact_ids)->get();
-        $recipients  = $contacts->pluck('email')->toArray();
+        $contacts = Contact::whereIn('id', $r->contact_ids)->get();
         $attachmentPath = null;
-        $subject = $r->subject;  // Použi zadaný predmet
-        $body    = $r->body;     // Použi zadané telo
-
         $attachmentPath = $r->input('attachment_path');
 
-        // Ak je zvolená nová príloha, ulož ju
         if ($r->hasFile('attachment')) {
             $attachmentPath = $r->file('attachment')->store('attachments', 'public');
-        } else {
-            $attachmentPath = $r->input('attachment_path'); // zvolená cez šablónu
         }
 
-        // Odoslanie e‑mailu
         if ($r->send_option === 'now') {
-            foreach ($recipients as $recipient) {
-                Mail::to($recipient)->send(new BulkMail($subject, $body, $attachmentPath));
-            }
+            $recipients = [];
 
-            //dd($r->all(), $attachmentPath);
+            foreach ($contacts as $contact) {
+                $personalizedSubject = $this->parseTemplate($r->subject, $contact);
+                $personalizedBody = $this->parseTemplate($r->body, $contact);
+
+                //print_r($personalizedBody);
+                //return;
+
+                // Odoslanie e-mailu s personalizovaným predmetom a obsahom
+                Mail::to($contact->email)->send(new BulkMail($personalizedSubject, $personalizedBody, $attachmentPath));
+                $recipients[] = $contact->email;
+            }
 
             // Uloženie do histórie
             Email::create([
-                'user_id'        => Auth::id(),
-                'subject'        => $subject,
-                'body'           => $body,
-                'recipients'     => $recipients,
-                'status'         => 'odoslane',
-                'attachment_path'=> $attachmentPath,
+                'user_id'         => Auth::id(),
+                'subject'         => $r->subject, // ukladáme originál
+                'body'            => $r->body,
+                'recipients'      => $recipients,
+                'status'          => 'odoslane',
+                'attachment_path' => $attachmentPath,
             ]);
 
             return redirect()->route('emails.history')->with('success', 'E‑maily boli okamžite odoslané.');
         }
 
-        // Ak e‑maily majú byť odoslané neskôr
+        // Príprava na odoslanie neskôr
         Email::create([
-            'user_id'        => Auth::id(),
-            'subject'        => $subject,
-            'body'           => $body,
-            'recipients'     => $recipients,
-            'status'         => 'caka',
-            'attachment_path'=> $attachmentPath,
+            'user_id'         => Auth::id(),
+            'subject'         => $r->subject,
+            'body'            => $r->body,
+            'recipients'      => $contacts->pluck('email')->toArray(),
+            'status'          => 'caka',
+            'attachment_path' => $attachmentPath,
         ]);
 
         return redirect()->route('emails.history')->with('success', 'E‑maily boli pripravené na odoslanie.');
     }
+
+
+    public function parseTemplate(string $template, Contact $contact): string
+    {
+        // Rozdelenie celého mena na meno a priezvisko
+        $nameParts = preg_split('/\s+/', trim($contact->name));
+        $firstName = $nameParts[0] ?? '';
+        $lastName = $nameParts[1] ?? '';
+
+        // Zistenie oslovenia podľa pohlavia
+        $salutation = $contact->salutation;
+        $isMale = ($contact->gender === 'muž');
+        $isFormal = ($contact->salutation === 'vykanie');
+        if ($isMale) {
+            if ($salutation === 'vykanie')
+                $greeting = 'Dobrý deň pán ' . $lastName;
+            else
+                $greeting = 'Ahoj ' . $firstName;
+        } else {
+            if ($salutation === 'vykanie')
+                $greeting = 'Dobrý deň pani ' . $lastName;
+            else
+                $greeting = 'Ahoj ' . $firstName;
+        }
+
+        // Určenie správneho tvaru zámen pre pohlavie
+        $steSi = $isFormal ? 'ste' : 'si';
+        $vasTvoj = $isFormal ? 'váš' : 'tvoj';
+        $vamTi = $isFormal ? 'vám' : 'Ti';
+        $vasTa = $isFormal ? 'vás' : 'Ťa';
+        $vyTy = $isFormal ? 'vy' : 'ty';
+
+        // Pravidlá na nahradenie
+        $replacements = [
+            '{first_name}}'     => $firstName,
+            '{last_name}}'      => $lastName,
+            '{name}}'           => $contact->name,
+            '{email}}'          => $contact->email,
+            '{pozdravenie}'    => $greeting,
+            '{ste/si}'         => $steSi,
+            '{vas/tvoj}'       => $vasTvoj,
+            '{vam/ti}'         => $vamTi,
+            '{vas/ta}'         => $vasTa,
+            '{vy/ty}'          => $vyTy,
+        ];
+
+        // Nahradenie všetkých placeholderov
+        return str_replace(array_keys($replacements), array_values($replacements), $template);
+    }
+
 
     public function history()
     {
@@ -93,11 +143,16 @@ class EmailController extends Controller
 
         foreach ($emails as $email) {
             foreach ($email->recipients as $recipient) {
-                // Pass the attachment path to the BulkMail mailable
+                $contact = Contact::where('email', $recipient)->first();
+                if (!$contact) continue;
+
+                $personalizedSubject = $this->parseTemplate($email->subject, $contact);
+                $personalizedBody = $this->parseTemplate($email->body, $contact);
+
                 Mail::to($recipient)->send(new BulkMail(
-                    $email->subject,
-                    $email->body,
-                    $email->attachment_path // Pass the attachment path
+                    $personalizedSubject,
+                    $personalizedBody,
+                    $email->attachment_path
                 ));
             }
 
@@ -115,14 +170,22 @@ class EmailController extends Controller
         }
 
         foreach ($email->recipients as $recipient) {
-            // Pass the attachment path to the BulkMail mailable
+            $contact = Contact::where('email', $recipient)->first();
+            if (!$contact) continue;
+
+            // Personalizované predmet a telo e-mailu pre konkrétny kontakt
+            $personalizedSubject = $this->parseTemplate($email->subject, $contact);
+            $personalizedBody = $this->parseTemplate($email->body, $contact);
+
+            // Odoslanie e-mailu s personalizovaným predmetom a obsahom
             Mail::to($recipient)->send(new BulkMail(
-                $email->subject,
-                $email->body,
-                $email->attachment_path // Pass the attachment path
+                $personalizedSubject,
+                $personalizedBody,
+                $email->attachment_path
             ));
         }
 
+        // Nastavenie stavu e-mailu na "odoslané"
         $email->status = 'odoslane';
         $email->save();
 
