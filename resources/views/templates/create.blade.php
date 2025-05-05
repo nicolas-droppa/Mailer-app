@@ -8,8 +8,7 @@
             Nová šablóna
         </h3>
 
-        {{-- enctype pre súbory --}}
-        <form action="{{ route('templates.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+        <form id="template-form" action="{{ route('templates.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
 
             <div>
@@ -28,12 +27,11 @@
 
             <div>
                 <label for="body" class="block text-sm font-medium text-gray-700">Telo</label>
-                <textarea id="body" name="body" rows="5"
-                          class="mt-1 w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300 @error('body') border-red-500 @enderror">{{ old('body') }}</textarea>
+                <textarea id="body" name="body" rows="5" class="hidden">{{ old('body') }}</textarea>
+                <div id="editor">{!! old('body') !!}</div>
                 @error('body')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
             </div>
 
-            {{-- Upload prílohy --}}
             <div>
                 <label for="attachment" class="block text-sm font-medium text-gray-700">Príloha (obrázok/PDF)</label>
                 <input id="attachment" name="attachment" type="file"
@@ -46,7 +44,6 @@
                 @error('attachment')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
             </div>
 
-            {{-- Tlačidlo --}}
             <button type="submit"
                     class="w-full py-2 px-4 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition transform hover:scale-105 flex items-center justify-center gap-2">
                 <i class="fas fa-save"></i>
@@ -63,3 +60,28 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    let editor;
+
+    ClassicEditor
+        .create(document.querySelector('#editor'))
+        .then(newEditor => {
+            editor = newEditor;
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
+    document.getElementById('template-form').addEventListener('submit', function (e) {
+        const editorData = editor.getData().trim();
+        document.getElementById('body').value = editorData;
+
+        if (!editorData) {
+            alert('Pole „Telo“ je povinné.');
+            e.preventDefault();
+        }
+    });
+</script>
+@endpush

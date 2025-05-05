@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @push('styles')
-<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
 @endpush
 
 @section('content')
@@ -25,7 +25,6 @@
         <form action="{{ route('emails.send') }}" method="POST" class="space-y-6" enctype="multipart/form-data">
             @csrf
 
-            <!-- Výber šablóny -->
             <div>
                 <label for="template_id" class="block text-sm font-medium text-gray-700">Šablóna (nepovinné)</label>
                 <select name="template_id" id="template_id"
@@ -43,7 +42,6 @@
                 </select>
             </div>
 
-            <!-- Predmet -->
             <div>
                 <label for="subject" class="block text-sm font-medium text-gray-700">Predmet</label>
                 <input type="text" name="subject" id="subject" required
@@ -51,14 +49,12 @@
                        class="mt-1 w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300">
             </div>
 
-            <!-- Telo e-mailu -->
             <div>
                 <label for="body" class="block text-sm font-medium text-gray-700">Telo e‑mailu</label>
-                <textarea name="body" id="body" rows="6" required
+                <textarea name="body" id="body" rows="6"
                           class="mt-1 w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300">{{ old('body') }}</textarea>
             </div>
 
-            <!-- Príjemcovia -->
             <div>
                 <label class="block text-sm font-medium text-gray-700">Príjemcovia</label>
                 <div class="flex items-center gap-3 mb-2">
@@ -78,7 +74,6 @@
                 </div>
             </div>
 
-            <!-- Čas odoslania -->
             <div>
                 <label for="send_option" class="block text-sm font-medium text-gray-700">Kedy odoslať?</label>
                 <select name="send_option" id="send_option" required
@@ -88,7 +83,6 @@
                 </select>
             </div>
 
-            <!-- Príloha -->
             <div>
                 <label for="attachment" class="block text-sm font-medium text-gray-700">Príloha (obrázok, PDF)</label>
                 <input id="attachment" name="attachment" type="file" class="mt-1 w-full text-sm text-gray-600
@@ -101,7 +95,6 @@
                 @error('attachment')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
             </div>
 
-            <!-- Príloha zo šablóny -->
             <div id="template-attachment-preview" class="hidden">
                 <label class="block text-sm font-medium text-gray-700">Príloha zo šablóny</label>
                 <p class="mt-1 text-sm">
@@ -114,7 +107,6 @@
                 </p>
             </div>
 
-            <!-- Odoslať -->
             <button type="submit"
                     class="w-full py-2 px-4 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition duration-200 transform hover:scale-105">
                 <i class="fas fa-paper-plane mr-2"></i> Odoslať
@@ -192,10 +184,26 @@
         selectedCount.textContent = recipientsContainer.children.length + ' vybraných';
     }
 
-    // Vyplniť predmet a telo podľa šablóny (prepíše hodnoty)
+    function decodeHTMLEntities(text) {
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = text;
+        return textarea.value;
+    }
+
+    let editor;
+    ClassicEditor
+        .create(document.querySelector('#body'), {
+            toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'undo', 'redo']
+        })
+        .then(newEditor => {
+            editor = newEditor;
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
     const templateSelect = document.getElementById('template_id');
     const subjectField = document.getElementById('subject');
-    const bodyField = document.getElementById('body');
     const attachHidden = document.getElementById('attachment_path');
 
     templateSelect.addEventListener('change', function () {
@@ -204,13 +212,10 @@
         const body = selectedOption.getAttribute('data-body') || '';
         const attachment = selectedOption.getAttribute('data-attachment') || '';
 
-        if (subject || body) {
-            subjectField.value = subject;
-            bodyField.value = decodeHTMLEntities(body);
+        subjectField.value = subject;
+        if (editor && body) {
+            editor.setData(decodeHTMLEntities(body));
         }
-
-        // Ulož automatickú prílohu zo šablóny
-        attachHidden.value = attachment;
 
         const attachmentPreview = document.getElementById('template-attachment-preview');
         const attachmentLink = document.getElementById('template-attachment-link');
@@ -221,30 +226,28 @@
             attachmentPreview.classList.remove('hidden');
         } else {
             attachHidden.value = '';
-            attachmentPreview.classList.add('hidden');
             attachmentLink.href = '#';
+            attachmentPreview.classList.add('hidden');
         }
     });
 
-    function decodeHTMLEntities(text) {
-        const textarea = document.createElement('textarea');
-        textarea.innerHTML = text;
-        return textarea.value;
-    }
-
-    // Filter kontaktov
     filterInput.addEventListener('input', function () {
-        const value = this.value.toLowerCase();
-        const checkboxes = document.querySelectorAll('.contact-checkbox');
-        checkboxes.forEach(cb => {
-            const name = cb.getAttribute('data-name');
-            const label = cb.closest('label');
-            if (name.includes(value)) {
-                label.style.display = '';
-            } else {
-                label.style.display = 'none';
-            }
+        const query = filterInput.value.toLowerCase();
+        const contacts = document.querySelectorAll('.contact-checkbox');
+        contacts.forEach(function (checkbox) {
+            const name = checkbox.getAttribute('data-name');
+            checkbox.closest('label').style.display = name.includes(query) ? '' : 'none';
         });
+    });
+
+    document.getElementById('email-form').addEventListener('submit', function (e) {
+        const editorData = editor.getData().trim();
+        document.getElementById('body').value = editorData;
+
+        if (!editorData) {
+            alert('Pole „Telo e‑mailu“ je povinné.');
+            e.preventDefault();
+        }
     });
 </script>
 @endpush

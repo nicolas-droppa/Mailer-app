@@ -8,7 +8,7 @@
             Upraviť e-mail
         </h2>
 
-        <form action="{{ route('emails.update', $email) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+        <form id="email-form" action="{{ route('emails.update', $email) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
             @method('PUT')
 
@@ -21,8 +21,9 @@
 
             <div>
                 <label for="body" class="block text-sm font-medium text-gray-700">Telo e-mailu</label>
-                <textarea name="body" id="body" rows="6" required
-                          class="mt-1 w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300 @error('body') border-red-500 @enderror">{{ old('body', $email->body) }}</textarea>
+                <textarea name="body" id="body" rows="6"
+                          class="hidden">{{ old('body', $email->body) }}</textarea>
+                <div id="editor">{!! old('body', $email->body) !!}</div>
                 @error('body') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
             </div>
 
@@ -58,3 +59,29 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    let editor;
+
+    ClassicEditor
+        .create(document.querySelector('#editor'))
+        .then(newEditor => {
+            editor = newEditor;
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
+    // Sync CKEditor content before submitting
+    document.getElementById('email-form').addEventListener('submit', function (e) {
+        const editorData = editor.getData().trim();
+        document.getElementById('body').value = editorData;
+
+        if (!editorData) {
+            alert('Pole „Telo e‑mailu“ je povinné.');
+            e.preventDefault();
+        }
+    });
+</script>
+@endpush

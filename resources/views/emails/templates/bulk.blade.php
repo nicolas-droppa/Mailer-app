@@ -3,7 +3,7 @@
 # {{ $subjectLine }}
 
 {{-- Body (HTML allowed) --}}
-{!! nl2br(e($body)) !!}
+{!! $body !!}
 
 {{-- Footer --}}
 Thanks,<br>
