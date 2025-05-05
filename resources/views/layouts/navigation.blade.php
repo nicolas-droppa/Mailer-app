@@ -27,6 +27,13 @@
                         {{ __('Emaily') }}
                     </x-nav-link>
                 </div>
+
+                <!-- Tlačidlo s názvom Návod s rovnakým vzhľadom ako linky -->
+                <div class="hidden sm:flex sm:ms-10">
+                    <button onclick="toggleVariablesModal()" class="text-sm text-gray-400 hover:text-blue-500 px-3 py-2 rounded-md transition duration-150 ease-in-out">
+                        {{ __('Návod') }}
+                    </button>
+                </div>
             </div>
 
             <!-- Settings Dropdown -->
@@ -99,6 +106,12 @@
             <x-responsive-nav-link :href="route('emails.history')" :active="request()->routeIs('emails.*')">
                 {{ __('Emaily') }}
             </x-responsive-nav-link>
+        </div>
+
+        <div class="pt-2 pb-3 space-y-1">
+            <button onclick="toggleVariablesModal()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                Návod
+            </button>
         </div>
 
         <!-- Responsive Settings Options -->
