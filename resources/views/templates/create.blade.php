@@ -12,7 +12,6 @@
         <form action="{{ route('templates.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
 
-            {{-- Názov, predmet, telo ako predtým... --}}
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-700">Názov</label>
                 <input id="name" name="name" value="{{ old('name') }}"
