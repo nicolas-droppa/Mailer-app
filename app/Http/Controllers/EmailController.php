@@ -113,10 +113,10 @@ class EmailController extends Controller
 
         // Pravidlá na nahradenie
         $replacements = [
-            '{first_name}}'     => $firstName,
-            '{last_name}}'      => $lastName,
-            '{name}}'           => $contact->name,
-            '{email}}'          => $contact->email,
+            '{meno}'          => $firstName,
+            '{priezvisko}'     => $lastName,
+            '{cele_meno}'      => $contact->name,
+            '{email}'          => $contact->email,
             '{pozdravenie}'    => $greeting,
             '{ste/si}'         => $steSi,
             '{vas/tvoj}'       => $vasTvoj,

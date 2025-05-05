@@ -66,7 +66,7 @@
             </tr>
           </thead>
           <tbody class="text-gray-800">
-            <tr><td class="border px-4 py-2 font-mono text-blue-600">{{ '{meno}' }}</td><td class="border px-4 py-2">Celé meno kontaktu</td></tr>
+            <tr><td class="border px-4 py-2 font-mono text-blue-600">{{ '{meno} / {priezvisko} / {cele_meno}' }}</td><td class="border px-4 py-2">Meno kontaktu</td></tr>
             <tr><td class="border px-4 py-2 font-mono text-blue-600">{{ '{email}' }}</td><td class="border px-4 py-2">Email kontaktu</td></tr>
             <tr><td class="border px-4 py-2 font-mono text-blue-600">{{ '{pozdravenie}' }}</td><td class="border px-4 py-2">Oslovenie podľa pohlavia a štýlu</td></tr>
             <tr><td class="border px-4 py-2 font-mono text-blue-600">{{ '{ste/si}' }}</td><td class="border px-4 py-2">Sloveso „byť“ v správnom tvare</td></tr>
