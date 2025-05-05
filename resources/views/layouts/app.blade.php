@@ -115,7 +115,7 @@
         <div id="example-female_formal" class="example hidden bg-gray-50 p-4 rounded-lg text-sm text-gray-700 space-y-3">
           <p class="font-medium text-gray-600">🧑‍💼 Žena – Vykanie</p>
           <p><span class="text-blue-600">Dobrý deň pani Nováková,</span></p>
-          <p>rada by som <span class="text-blue-600">Vás</span> pozval na oslavu svojich 20. narodenín. Oslava bude 21.05.2025 (v sobotu) o 16:30 na Račianskej 47. Na oslave bude množstvo skvelej zábavy, jedla a drinkov. Verím, že sa <span class="text-blue-600">Vám</span> bude páčiť a že sa tam uvidíme!</p>
+          <p>rád by som <span class="text-blue-600">Vás</span> pozval na oslavu svojich 20. narodenín. Oslava bude 21.05.2025 (v sobotu) o 16:30 na Račianskej 47. Na oslave bude množstvo skvelej zábavy, jedla a drinkov. Verím, že sa <span class="text-blue-600">Vám</span> bude páčiť a že sa tam uvidíme!</p>
           <p>Prosím o potvrdenie účasti čo najskôr, ďakujem.</p>
           <p>S pozdravom Janko Hraško</p>
         </div>
@@ -123,7 +123,7 @@
         <div id="example-female_informal" class="example hidden bg-gray-50 p-4 rounded-lg text-sm text-gray-700 space-y-3">
           <p class="font-medium text-gray-600">👩 Žena – Tykanie</p>
           <p><span class="text-blue-600">Ahoj Janka,</span></p>
-          <p>rada by som <span class="text-blue-600">Ťa</span> pozval na oslavu svojich 20. narodenín. Oslava bude 21.05.2025 (v sobotu) o 16:30 na Račianskej 47. Na oslave bude množstvo skvelej zábavy, jedla a drinkov. Verím, že sa <span class="text-blue-600">Ti</span> bude páčiť a že sa tam uvidíme!</p>
+          <p>rád by som <span class="text-blue-600">Ťa</span> pozval na oslavu svojich 20. narodenín. Oslava bude 21.05.2025 (v sobotu) o 16:30 na Račianskej 47. Na oslave bude množstvo skvelej zábavy, jedla a drinkov. Verím, že sa <span class="text-blue-600">Ti</span> bude páčiť a že sa tam uvidíme!</p>
           <p>Prosím o potvrdenie účasti čo najskôr, ďakujem.</p>
           <p>S pozdravom Janko Hraško</p>
         </div>
