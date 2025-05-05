@@ -15,12 +15,6 @@
         </a>
     </div>
 
-    @if (session('success'))
-        <div class="mb-6 p-4 bg-green-100 text-green-800 rounded shadow">
-            {{ session('success') }}
-        </div>
-    @endif
-
     <!-- Filter + Status Switch -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
         <!-- Subject Search -->

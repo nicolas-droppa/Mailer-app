@@ -22,23 +22,27 @@ class ContactController extends Controller
 
     public function store(Request $request)
     {
+        // Validácia
         $validated = $request->validate([
-            'name' => 'required|string',
-            'email' => [
+            'name'       => 'required|string|max:255',
+            'email'      => [
                 'required',
                 'email',
-                Rule::unique('contacts')->where(function ($query) {
-                    return $query->where('user_id', Auth::id());
-                }),
+                'max:255',
+                Rule::unique('contacts')
+                    ->where('user_id', Auth::id()),
             ],
             'salutation' => 'required|in:tykanie,vykanie',
-            'gender' => 'required|in:muž,žena',
+            'gender'     => 'required|in:muž,žena',
         ]);
 
+        // Priradíme user_id a uložíme
         $validated['user_id'] = Auth::id();
         Contact::create($validated);
 
-        return redirect()->route('contacts.index');
+        return redirect()
+            ->route('contacts.index')
+            ->with('success', 'Kontakt bol úspešne pridaný.');
     }
 
     public function edit(Contact $contact)
@@ -51,23 +55,36 @@ class ContactController extends Controller
     {
         $this->authorizeContact($contact);
 
+        // Validácia (ignorujeme vlastný záznam podľa ID)
         $validated = $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|email|unique:contacts,email,' . $contact->id,
+            'name'       => 'required|string|max:255',
+            'email'      => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('contacts')
+                    ->ignore($contact->id)
+                    ->where('user_id', Auth::id()),
+            ],
             'salutation' => 'required|in:tykanie,vykanie',
-            'gender' => 'required|in:muž,žena',
+            'gender'     => 'required|in:muž,žena',
         ]);
 
         $contact->update($validated);
 
-        return redirect()->route('contacts.index');
+        return redirect()
+            ->route('contacts.index')
+            ->with('success', 'Kontakt bol úspešne upravený.');
     }
 
     public function destroy(Contact $contact)
     {
         $this->authorizeContact($contact);
         $contact->delete();
-        return redirect()->route('contacts.index');
+
+        return redirect()
+            ->route('contacts.index')
+            ->with('success', 'Kontakt bol odstránený.');
     }
 
     private function authorizeContact(Contact $contact)
