@@ -21,6 +21,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('templates', TemplateController::class);
     Route::post('/templates/{template}/copy', [TemplateController::class, 'copy'])->name('templates.copy');
     Route::get('/templates/{template}', [TemplateController::class, 'show'])->name('templates.show');
+    Route::get('/templates/{id}', function($id) {
+        return App\Models\Template::findOrFail($id);
+    });
 
     Route::get('emails/create',   [EmailController::class,'create'])->name('emails.create');
     Route::post('emails/send',    [EmailController::class,'send'])->name('emails.send');

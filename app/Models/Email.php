@@ -14,6 +14,7 @@ class Email extends Model
         'recipients',
         'status',
         'scheduled_at',
+        'attachment_path', // ← pridaj toto
     ];
 
     protected $casts = [

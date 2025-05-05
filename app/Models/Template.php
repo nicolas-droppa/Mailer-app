@@ -10,7 +10,8 @@ class Template extends Model
         'user_id',
         'name',
         'subject',
-        'body'
+        'body',
+        'attachment_path',
     ];
 
     public function user(){ 

@@ -8,9 +8,11 @@
             Nová šablóna
         </h3>
 
-        <form action="{{ route('templates.store') }}" method="POST" class="space-y-4">
+        {{-- enctype pre súbory --}}
+        <form action="{{ route('templates.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
 
+            {{-- Názov, predmet, telo ako predtým... --}}
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-700">Názov</label>
                 <input id="name" name="name" value="{{ old('name') }}"
@@ -32,8 +34,22 @@
                 @error('body')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
             </div>
 
+            {{-- Upload prílohy --}}
+            <div>
+                <label for="attachment" class="block text-sm font-medium text-gray-700">Príloha (obrázok/PDF)</label>
+                <input id="attachment" name="attachment" type="file"
+                       class="mt-1 block w-full text-sm text-gray-600
+                              file:mr-4 file:py-2 file:px-4
+                              file:rounded file:border-0
+                              file:text-sm file:font-semibold
+                              file:bg-blue-100 file:text-blue-700
+                              hover:file:bg-blue-200" />
+                @error('attachment')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
+            </div>
+
+            {{-- Tlačidlo --}}
             <button type="submit"
-                    class="w-full py-2 px-4 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition duration-200 transform hover:scale-105 flex items-center justify-center gap-2">
+                    class="w-full py-2 px-4 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition transform hover:scale-105 flex items-center justify-center gap-2">
                 <i class="fas fa-save"></i>
                 Uložiť šablónu
             </button>

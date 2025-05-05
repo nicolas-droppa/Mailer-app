@@ -22,7 +22,7 @@
             </div>
         @endif
 
-        <form action="{{ route('emails.send') }}" method="POST" class="space-y-6">
+        <form action="{{ route('emails.send') }}" method="POST" class="space-y-6" enctype="multipart/form-data">
             @csrf
 
             <!-- Výber šablóny -->
@@ -35,6 +35,7 @@
                         <option value="{{ $t->id }}"
                                 data-subject="{{ $t->subject }}"
                                 data-body="{{ htmlentities($t->body) }}"
+                                data-attachment="{{ $t->attachment_path ?? '' }}"
                                 {{ old('template_id') == $t->id ? 'selected' : '' }}>
                             {{ $t->name }}
                         </option>
@@ -85,6 +86,32 @@
                     <option value="now" {{ old('send_option') === 'now' ? 'selected' : '' }}>Odoslať hneď</option>
                     <option value="later" {{ old('send_option') === 'later' ? 'selected' : '' }}>Odoslať neskôr</option>
                 </select>
+            </div>
+
+            <!-- Príloha -->
+            <div>
+                <label for="attachment" class="block text-sm font-medium text-gray-700">Príloha (obrázok, PDF)</label>
+                <input id="attachment" name="attachment" type="file" class="mt-1 w-full text-sm text-gray-600
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-blue-100 file:text-blue-700
+                            hover:file:bg-blue-200">
+                <input type="hidden" name="attachment_path" id="attachment_path" value="{{ old('attachment_path') }}">
+                @error('attachment')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
+            </div>
+
+            <!-- Príloha zo šablóny -->
+            <div id="template-attachment-preview" class="hidden">
+                <label class="block text-sm font-medium text-gray-700">Príloha zo šablóny</label>
+                <p class="mt-1 text-sm">
+                    <a id="template-attachment-link"
+                    href="#"
+                    target="_blank"
+                    class="text-blue-600 underline hover:text-blue-800">
+                        Stiahnuť prílohu
+                    </a>
+                </p>
             </div>
 
             <!-- Odoslať -->
@@ -165,26 +192,37 @@
         selectedCount.textContent = recipientsContainer.children.length + ' vybraných';
     }
 
-    filterInput.addEventListener('input', function () {
-        const filter = this.value.toLowerCase();
-        document.querySelectorAll('.contact-checkbox').forEach(cb => {
-            const name = cb.dataset.name;
-            cb.closest('label').style.display = name.includes(filter) ? 'flex' : 'none';
-        });
-    });
-
     // Vyplniť predmet a telo podľa šablóny (prepíše hodnoty)
     const templateSelect = document.getElementById('template_id');
     const subjectField = document.getElementById('subject');
     const bodyField = document.getElementById('body');
+    const attachHidden = document.getElementById('attachment_path');
 
     templateSelect.addEventListener('change', function () {
         const selectedOption = this.options[this.selectedIndex];
         const subject = selectedOption.getAttribute('data-subject') || '';
         const body = selectedOption.getAttribute('data-body') || '';
+        const attachment = selectedOption.getAttribute('data-attachment') || '';
+
         if (subject || body) {
             subjectField.value = subject;
             bodyField.value = decodeHTMLEntities(body);
+        }
+
+        // Ulož automatickú prílohu zo šablóny
+        attachHidden.value = attachment;
+
+        const attachmentPreview = document.getElementById('template-attachment-preview');
+        const attachmentLink = document.getElementById('template-attachment-link');
+
+        if (attachment) {
+            attachHidden.value = attachment;
+            attachmentLink.href = `/storage/${attachment}`;
+            attachmentPreview.classList.remove('hidden');
+        } else {
+            attachHidden.value = '';
+            attachmentPreview.classList.add('hidden');
+            attachmentLink.href = '#';
         }
     });
 
@@ -193,5 +231,20 @@
         textarea.innerHTML = text;
         return textarea.value;
     }
+
+    // Filter kontaktov
+    filterInput.addEventListener('input', function () {
+        const value = this.value.toLowerCase();
+        const checkboxes = document.querySelectorAll('.contact-checkbox');
+        checkboxes.forEach(cb => {
+            const name = cb.getAttribute('data-name');
+            const label = cb.closest('label');
+            if (name.includes(value)) {
+                label.style.display = '';
+            } else {
+                label.style.display = 'none';
+            }
+        });
+    });
 </script>
 @endpush

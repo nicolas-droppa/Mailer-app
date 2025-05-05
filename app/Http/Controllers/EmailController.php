@@ -9,14 +9,15 @@ use App\Mail\BulkMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class EmailController extends Controller
 {
     public function create()
     {
-        $contacts  = Contact::where('user_id',Auth::id())->get();
-        $templates = Template::where('user_id',Auth::id())->get();
-        return view('emails.create', compact('contacts','templates'));
+        $contacts  = Contact::where('user_id', Auth::id())->get();
+        $templates = Template::where('user_id', Auth::id())->get();
+        return view('emails.create', compact('contacts', 'templates'));
     }
 
     public function send(Request $r)
@@ -27,50 +28,57 @@ class EmailController extends Controller
             'send_option' => 'required|in:now,later',
             'subject'     => 'required|string|max:255',
             'body'        => 'required|string',
+            'attachment'  => 'nullable|file|max:10240', // max 10MB
         ]);
 
-        $contacts = Contact::whereIn('id', $r->contact_ids)->get();
-        $recipients = $contacts->pluck('email')->toArray();
+        $contacts    = Contact::whereIn('id', $r->contact_ids)->get();
+        $recipients  = $contacts->pluck('email')->toArray();
+        $attachmentPath = null;
+        $subject = $r->subject;  // Použi zadaný predmet
+        $body    = $r->body;     // Použi zadané telo
 
-        // V prípade šablóny prepíš subject/body (iba ak šablóna bola naozaj vybraná)
-        if ($r->template_id) {
-            $tpl = Template::find($r->template_id);
-            $subject = $tpl->subject;
-            $body    = $tpl->body;
+        $attachmentPath = $r->input('attachment_path');
+
+        // Ak je zvolená nová príloha, ulož ju
+        if ($r->hasFile('attachment')) {
+            $attachmentPath = $r->file('attachment')->store('attachments', 'public');
         } else {
-            $subject = $r->subject;
-            $body    = $r->body;
+            $attachmentPath = $r->input('attachment_path'); // zvolená cez šablónu
         }
 
-        // Odoslať hneď
+        // Odoslanie e‑mailu
         if ($r->send_option === 'now') {
             foreach ($recipients as $recipient) {
-                Mail::to($recipient)->send(new BulkMail($subject, $body));
+                Mail::to($recipient)->send(new BulkMail($subject, $body, $attachmentPath));
             }
 
+            //dd($r->all(), $attachmentPath);
+
+            // Uloženie do histórie
             Email::create([
-                'user_id'    => Auth::id(),
-                'subject'    => $subject,
-                'body'       => $body,
-                'recipients' => $recipients,
-                'status'     => 'odoslane',
+                'user_id'        => Auth::id(),
+                'subject'        => $subject,
+                'body'           => $body,
+                'recipients'     => $recipients,
+                'status'         => 'odoslane',
+                'attachment_path'=> $attachmentPath,
             ]);
 
             return redirect()->route('emails.history')->with('success', 'E‑maily boli okamžite odoslané.');
         }
 
-        // Odoslať neskôr
+        // Ak e‑maily majú byť odoslané neskôr
         Email::create([
-            'user_id'    => Auth::id(),
-            'subject'    => $subject,
-            'body'       => $body,
-            'recipients' => $recipients,
-            'status'     => 'caka',
+            'user_id'        => Auth::id(),
+            'subject'        => $subject,
+            'body'           => $body,
+            'recipients'     => $recipients,
+            'status'         => 'caka',
+            'attachment_path'=> $attachmentPath,
         ]);
 
         return redirect()->route('emails.history')->with('success', 'E‑maily boli pripravené na odoslanie.');
     }
-
 
     public function history()
     {
@@ -85,8 +93,14 @@ class EmailController extends Controller
 
         foreach ($emails as $email) {
             foreach ($email->recipients as $recipient) {
-                Mail::to($recipient)->send(new BulkMail($email->subject, $email->body));
+                // Pass the attachment path to the BulkMail mailable
+                Mail::to($recipient)->send(new BulkMail(
+                    $email->subject,
+                    $email->body,
+                    $email->attachment_path // Pass the attachment path
+                ));
             }
+
             $email->status = 'odoslane';
             $email->save();
         }
@@ -101,7 +115,12 @@ class EmailController extends Controller
         }
 
         foreach ($email->recipients as $recipient) {
-            Mail::to($recipient)->send(new BulkMail($email->subject, $email->body));
+            // Pass the attachment path to the BulkMail mailable
+            Mail::to($recipient)->send(new BulkMail(
+                $email->subject,
+                $email->body,
+                $email->attachment_path // Pass the attachment path
+            ));
         }
 
         $email->status = 'odoslane';
@@ -126,14 +145,36 @@ class EmailController extends Controller
         }
 
         $validated = $request->validate([
-            'subject' => 'required|string|max:255',
-            'body' => 'required|string',
+            'subject'    => 'required|string|max:255',
+            'body'       => 'required|string',
+            'attachment' => 'nullable|file|mimes:pdf|max:10240', // max 10MB
         ]);
 
-        $email->update($validated);
+        // Update základných údajov
+        $email->update([
+            'subject' => $validated['subject'],
+            'body'    => $validated['body'],
+        ]);
+
+        // Ak je nahraná nová príloha
+        if ($request->hasFile('attachment')) {
+            // Odstráni starý súbor, ak existuje
+            if ($email->attachment_path && \Storage::disk('public')->exists($email->attachment_path)) {
+                \Storage::disk('public')->delete($email->attachment_path);
+            }
+
+            // Uloženie novej prílohy
+            $path = $request->file('attachment')->store('attachments', 'public');
+
+            // Aktualizuj cestu v databáze
+            $email->update([
+                'attachment_path' => $path,
+            ]);
+        }
 
         return redirect()->route('emails.history')->with('success', 'E-mail bol úspešne aktualizovaný.');
     }
+
 
     public function copy(Email $email)
     {
